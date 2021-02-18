@@ -1,42 +1,42 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+			planets: [],
+			people: [],
+			vehicles: [],
+			favorites: []
 		},
 		actions: {
 			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
+			// fetchData receives as param the objects that you want to retrieve (i.e.: planets, people, vehicles, etc).
+			fetchData: param => {
+				let url = `https://www.swapi.tech/api/${param}`;
+				fetch(url)
+					.then(res => res.json())
+					.then(data => {
+						// Information will be the planets, people and vehicles that we are going to receive.
+						let information = [];
+						data.results.forEach(item => {
+							fetch(item.url)
+								.then(res2 => res2.json())
+								.then(data2 => {
+									information.push(data2.result.properties);
+								})
+								.catch(err => console.log(err));
+						});
+						param == "planets"
+							? setStore({ planets: information })
+							: param == "people"
+								? setStore({ people: information })
+								: param == "vehicles"
+									? setStore({ vehicles: information })
+									: console.log("Invalid param.");
+					})
+					.catch(err => console.error(err));
+			},
+			setFavorites: param => {
+				setStore({ favorites: param });
 			}
 		}
 	};
